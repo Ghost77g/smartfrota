@@ -16,7 +16,6 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
     raise Exception("DATABASE_URL não carregada")
 
-# 🔥 ESSA LINHA RESOLVE TUDO
 config.set_main_option("sqlalchemy.url", DATABASE_URL)
 
 

@@ -48,6 +48,7 @@ class Veiculo(Base):
     marca = Column(String, nullable=False)
     placa = Column(String, nullable=False)
     preco = Column(Float, nullable=True)
+    motorista_id = Column()
 
     status = Column(
         Enum(StatusVeiculo, name="status_veiculo_enum"),
@@ -62,9 +63,6 @@ class Veiculo(Base):
         self.preco = preco
         self.status = status
 
-# =========================
-# ITEM
-# =========================
 class manutenção(Base):
     __tablename__ = "manutenções"
 
@@ -98,7 +96,7 @@ class motorista_veiculo(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)  # corrigido
     veiculo_id = Column(Integer, ForeignKey("veiculos.id")) 
-    motorist_id = Column(Integer, ForeignKey("usuarios.id"))  # corrigido
+    motorista_id = Column(Integer, ForeignKey("usuarios.id"))  # corrigido
     data_inicio = Column(Date)
     data_fim = Column(Date)
 
