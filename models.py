@@ -7,7 +7,7 @@ from sqlalchemy_utils.types import ChoiceType
 from database import Base
 import enum
 
-db = create_engine("postgresql:///postgres:gm080507@localhost/smartfrota.db")
+db = create_engine("postgresql://postgres:gm080507@localhost:5432/smartfrota.db")
 Base = declarative_base()
 
 class Usuario(Base):

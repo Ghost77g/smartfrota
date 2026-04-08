@@ -4,6 +4,11 @@ from passlib.context import CryptContext
 from dotenv import load_dotenv
 import os
 from database import engine, Base
+from config import bcrypt_context, OAuth2schema 
+from auth_routers import auth_router
+
+app = FastAPI()
+app.include_router(auth_router)
 
 app = FastAPI()
 

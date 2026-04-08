@@ -4,7 +4,7 @@ from datetime import date
 
 class UsuarioSchema(BaseModel):
     name:str
-    senha:date
+    senha:str
     email:str
     telefone:str
     ativo:Optional[bool]
@@ -24,7 +24,7 @@ class veiculoSchema(BaseModel):
 class DocumentoSchema(BaseModel):
     tipo:str
     data_inicio:date
-    data_fim:data
+    data_fim:date
 
 class LoginSchema(BaseModel):
     email:str

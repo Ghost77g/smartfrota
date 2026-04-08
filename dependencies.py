@@ -1,9 +1,9 @@
 from models import db
 from sqlalchemy.orm import sessionmaker, Session
 from models import Usuario
-from fastapi import Depends
+from fastapi import Depends, HTTPException
 from jose import jwt, JWTError
-from main import SECRET_KEY, ALGORITHM, OAuth2schema
+from config import SECRET_KEY, ALGORITHM, OAuth2schema
 
 def pegar_sessao():
     try:
@@ -15,13 +15,13 @@ def pegar_sessao():
 
 def verificar_token(token: str = Depends(OAuth2schema), session: Session = Depends(pegar_sessao)):
     try:
-        dic_info = jwt.decode(token, SECRET_KEY, ALGORITHM)
+        dic_info = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         id_usuario = int(dic_info.get("sub"))
-    except JWTError:
-        raise HTTPException(status_code=401, details="acesso negado, verifique a validadade do token")
+    except JWTError as e:
+        raise HTTPException(status_code=401, detail=f"debug: {str(e)}")
 
-    usuario = session.query(Usuario).filter(Usuario.id==1).first
+    usuario = session.query(Usuario).filter(Usuario.id==id_usuario).first()
     if not usuario:
-        raise HTTPException(status_code=401, details="acesso negado")
+        raise HTTPException(status_code=401, detail="acesso negado")
 
     return usuario
