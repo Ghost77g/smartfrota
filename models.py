@@ -1,11 +1,15 @@
 from sqlalchemy import ForeignKey, create_engine, Column, String, Integer, Float, Boolean, Date, Enum
 from sqlalchemy.orm import declarative_base
 from sqlalchemy_utils.types import ChoiceType
-from sqlalchemy import ForeignKey, create_engine, Column, String, Integer, Float, Boolean
+from sqlalchemy import ForeignKey, create_engine, Column, String, Integer, Float, Boolean, DateTime
 from sqlalchemy.orm import declarative_base
 from sqlalchemy_utils.types import ChoiceType
 from database import Base
 import enum
+import uuid
+from sqlalchemy.dialects.postgresql import UUID
+from datetime import datetime
+import os
 
 db = create_engine("postgresql://postgres:gm080507@localhost:5432/smartfrota.db")
 Base = declarative_base()
@@ -105,3 +109,18 @@ class motorista_veiculo(Base):
         self. motorist_id = motorist_id
         self.data_inicio = data_inicio
         self.data_fim = data_fim
+
+class PasswordResetToken(Base):    
+    __tablename__ = "password_reset_tokens"
+
+    id         = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id    = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"))
+    token      = Column(String(255), unique=True, nullable=False)
+    expires_at = Column(DateTime, nullable=False)
+    used       = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    def __init__(self, user_id, token, expires_at):
+        self.user_id = user_id
+        self.token = token
+        self.expires_at = expires_at

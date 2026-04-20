@@ -7,8 +7,15 @@ from jose import jwt, JWTError
 from datetime import datetime, timedelta, timezone
 from fastapi.security import OAuth2PasswordRequestForm
 from config import bcrypt_context, ALGORITHM, ACESS_TOKEN_EXPIRE, SECRET_KEY
+from database import get_db
+from schemas import ForgotPasswordRequest, ResetPasswordRequest, MessageResponse
+from services import auth_service
+from services.email_service import send_reset_email
+import os
 
 auth_router = APIRouter(prefix="/auth", tags=["auth"])
+
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
 
 def criar_token(usuario, duracao_token = timedelta(days=ACESS_TOKEN_EXPIRE)):
     data_expiracao = datetime.now(timezone.utc) + duracao_token
@@ -76,3 +83,44 @@ async def use_refresh_token(usuario: Usuario = Depends(verificar_token)):
         "access_token": acess_token,
         "token_type": "bearer"
     }
+
+    
+@auth_router.post("/forgot-password", response_model=MessageResponse)
+async def forgot_password(body: ForgotPasswordRequest, db: Session = Depends(get_db)):
+    # Resposta genérica por segurança (não revela se o e-mail existe)
+    GENERIC_RESPONSE = {"message": "Se o e-mail existir, você receberá as instruções."}
+
+    user = auth_service.get_user_by_email(db, body.email)
+    if not user:
+        return GENERIC_RESPONSE
+
+    token      = auth_service.generate_reset_token(db, user)
+    reset_link = f"{FRONTEND_URL}/reset-password?token={token}"
+
+    await send_reset_email(
+        to         = user.email,
+        name       = user.name,
+        reset_link = reset_link
+    )
+
+    return GENERIC_RESPONSE
+
+
+@auth_router.post("/reset-password", response_model=MessageResponse)
+async def reset_password(
+    body: ResetPasswordRequest,
+    db: Session = Depends(get_db)
+):
+    reset_token = auth_service.validate_reset_token(db, body.token)
+
+    if not reset_token:
+        raise HTTPException(status_code=400, detail="Token inválido ou expirado.")
+
+    try:
+        auth_service.update_password(db, reset_token.user_id, body.new_password)
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+
+    auth_service.invalidate_token(db, reset_token)
+
+    return {"message": "Senha redefinida com sucesso!"}

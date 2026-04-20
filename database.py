@@ -10,3 +10,10 @@ engine = create_engine( os.getenv("DATABASE_URL"), connect_args={"check_same_thr
 SessionLocal = sessionmaker(bind=engine)
 
 Base = declarative_base()
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()

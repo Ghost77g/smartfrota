@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from typing import Optional
 from datetime import date
 
@@ -29,6 +29,25 @@ class DocumentoSchema(BaseModel):
 class LoginSchema(BaseModel):
     email:str
     senha:str
+
+    class config:
+        from_attributes = True
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+    class config:
+        from_attributes = True
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str
+
+    class config:
+        from_attributes = True
+
+class MessageResponse(BaseModel):
+    message: str
 
     class config:
         from_attributes = True
