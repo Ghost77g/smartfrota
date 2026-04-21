@@ -1,5 +1,5 @@
 import secrets
-import bcrypt
+from config import bcrypt_context as bcrypt
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 from models import Usuario, PasswordResetToken
@@ -21,7 +21,7 @@ def generate_reset_token(db: Session, Usuario: Usuario) -> str:
     expires_at = datetime.utcnow() + timedelta(minutes=30)
 
     reset_token = PasswordResetToken(
-        user_id    = user.id,
+        user_id    = Usuario.id,
         token      = token,
         expires_at = expires_at,
     )
@@ -41,14 +41,13 @@ def validate_reset_token(db: Session, token: str) -> PasswordResetToken | None:
 
 
 def update_password(db: Session, user_id, new_password: str):
-    # Força da senha
     if len(new_password) < 8:
         raise ValueError("A senha deve ter no mínimo 8 caracteres.")
 
-    hashed = bcrypt.hashpw(new_password.encode("utf-8"), bcrypt.gensalt(rounds=12))
+    hashed = bcrypt.hash(new_password)  # ✅ simples assim
 
-    user = db.query(User).filter(User.id == user_id).first()
-    user.password = hashed.decode("utf-8")
+    user = db.query(Usuario).filter(Usuario.id == user_id).first()
+    user.senha = hashed  # ✅ campo correto
     db.commit()
 
 

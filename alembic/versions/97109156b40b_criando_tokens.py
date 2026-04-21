@@ -1,8 +1,8 @@
-"""migração inicial
+"""criando tokens
 
-Revision ID: 41f17524866b
+Revision ID: 97109156b40b
 Revises: 
-Create Date: 2026-04-08 08:11:54.318423
+Create Date: 2026-04-21 20:30:11.636026
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '41f17524866b'
+revision: str = '97109156b40b'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -32,13 +32,26 @@ def upgrade() -> None:
     sa.Column('admin', sa.Boolean(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
+    op.create_table('password_reset_tokens',
+    sa.Column('id', sa.UUID(), nullable=False),
+    sa.Column('user_id', sa.Integer(), nullable=True),
+    sa.Column('token', sa.String(length=255), nullable=False),
+    sa.Column('expires_at', sa.DateTime(), nullable=False),
+    sa.Column('used', sa.Boolean(), nullable=True),
+    sa.Column('created_at', sa.DateTime(), nullable=True),
+    sa.ForeignKeyConstraint(['user_id'], ['usuarios.id'], ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('token')
+    )
     op.create_table('veiculos',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('modelo', sa.String(), nullable=False),
     sa.Column('marca', sa.String(), nullable=False),
     sa.Column('placa', sa.String(), nullable=False),
     sa.Column('preco', sa.Float(), nullable=True),
+    sa.Column('motorista_id', sa.Integer(), nullable=True),
     sa.Column('status', sa.Enum('PRONTO', 'EM_USO', 'QUEBRADO', 'IRREGULAR', 'MANUTENCAO', name='status_veiculo_enum'), nullable=False),
+    sa.ForeignKeyConstraint(['motorista_id'], ['usuarios.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('Documentos',
@@ -53,10 +66,10 @@ def upgrade() -> None:
     op.create_table('Motorista-veiculo',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('veiculo_id', sa.Integer(), nullable=True),
-    sa.Column('motorist_id', sa.Integer(), nullable=True),
+    sa.Column('motorista_id', sa.Integer(), nullable=True),
     sa.Column('data_inicio', sa.Date(), nullable=True),
     sa.Column('data_fim', sa.Date(), nullable=True),
-    sa.ForeignKeyConstraint(['motorist_id'], ['usuarios.id'], ),
+    sa.ForeignKeyConstraint(['motorista_id'], ['usuarios.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['veiculo_id'], ['veiculos.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
@@ -79,5 +92,6 @@ def downgrade() -> None:
     op.drop_table('Motorista-veiculo')
     op.drop_table('Documentos')
     op.drop_table('veiculos')
+    op.drop_table('password_reset_tokens')
     op.drop_table('usuarios')
     # ### end Alembic commands ###

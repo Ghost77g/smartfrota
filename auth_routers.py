@@ -99,7 +99,7 @@ async def forgot_password(body: ForgotPasswordRequest, db: Session = Depends(get
 
     await send_reset_email(
         to         = user.email,
-        name       = user.name,
+        name       = user.nome,
         reset_link = reset_link
     )
 

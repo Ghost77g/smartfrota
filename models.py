@@ -1,4 +1,4 @@
-from sqlalchemy import ForeignKey, create_engine, Column, String, Integer, Float, Boolean, Date, Enum
+from sqlalchemy import ForeignKey, create_engine, Column, String, Integer, Float, Boolean, Date, Enum, UUID
 from sqlalchemy.orm import declarative_base
 from sqlalchemy_utils.types import ChoiceType
 from sqlalchemy import ForeignKey, create_engine, Column, String, Integer, Float, Boolean, DateTime
@@ -17,7 +17,7 @@ Base = declarative_base()
 class Usuario(Base):
     __tablename__ = "usuarios"  # padronizado minúsculo
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(Integer, primary_key=True, autoincrement=True) 
     nome = Column(String, nullable=False)
     senha = Column(String, nullable=False)
     email = Column(String, nullable=False)
@@ -52,13 +52,8 @@ class Veiculo(Base):
     marca = Column(String, nullable=False)
     placa = Column(String, nullable=False)
     preco = Column(Float, nullable=True)
-    motorista_id = Column()
-
-    status = Column(
-        Enum(StatusVeiculo, name="status_veiculo_enum"),
-        default=StatusVeiculo.PRONTO,
-        nullable=False
-    )
+    motorista_id = Column(Integer, ForeignKey("usuarios.id", ondelete="CASCADE"))
+    status = Column(Enum(StatusVeiculo, name="status_veiculo_enum"),default=StatusVeiculo.PRONTO,nullable=False)
 
     def __init__(self, modelo, marca, placa, preco=0, status=StatusVeiculo.PRONTO):
         self.modelo = modelo
@@ -98,9 +93,9 @@ class documento(Base):
 class motorista_veiculo(Base):
     __tablename__ = "Motorista-veiculo"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)  # corrigido
+    id = Column(Integer, primary_key=True, autoincrement=True) 
     veiculo_id = Column(Integer, ForeignKey("veiculos.id")) 
-    motorista_id = Column(Integer, ForeignKey("usuarios.id"))  # corrigido
+    motorista_id = Column(Integer, ForeignKey("usuarios.id", ondelete="CASCADE"))  # corrigido
     data_inicio = Column(Date)
     data_fim = Column(Date)
 
@@ -114,7 +109,7 @@ class PasswordResetToken(Base):
     __tablename__ = "password_reset_tokens"
 
     id         = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id    = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"))
+    user_id    = Column(Integer, ForeignKey("usuarios.id", ondelete="CASCADE"))
     token      = Column(String(255), unique=True, nullable=False)
     expires_at = Column(DateTime, nullable=False)
     used       = Column(Boolean, default=False)
