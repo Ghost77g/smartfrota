@@ -25,3 +25,8 @@ def verificar_token(token: str = Depends(OAuth2schema), session: Session = Depen
         raise HTTPException(status_code=401, detail="acesso negado")
 
     return usuario
+
+def verificar_gestor(usuario: Usuario = Depends(verificar_token)):
+    if not usuario.admin:
+        raise HTTPException(status_code=403, detail="Acesso restrito a gestores")
+    return usuario

@@ -1,53 +1,88 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, field_validator
 from typing import Optional
 from datetime import date
 
+
 class UsuarioSchema(BaseModel):
-    name:str
-    senha:str
-    email:str
-    telefone:str
-    ativo:Optional[bool]
-    admin:Optional[bool]
+    name: str
+    senha: str
+    email: str
+    telefone: str
+    ativo: Optional[bool] = None
+    admin: Optional[bool] = None
 
-    class config:
+    class Config:
         from_attributes = True
-    
+
+
 class veiculoSchema(BaseModel):
-        modelo:str
-        marca:str
-        placa:str
+    modelo: str
+    marca: str
+    placa: str
 
-        class config:
-            from_attributes = True
+    class Config:
+        from_attributes = True
 
-class DocumentoSchema(BaseModel):
-    tipo:str
-    data_inicio:date
-    data_fim:date
+
+# ── Documentos ───────────────────────────────────────────────────────────────
+
+class DocumentoResponse(BaseModel):
+    """Schema de saída (leitura) de um documento."""
+    id: int
+    nome: str
+    tipo: str
+    data_emissao: date
+    data_vencimento: date
+    arquivo_nome: Optional[str] = None
+    veiculo_id: Optional[int] = None
+
+    class Config:
+        from_attributes = True
+
+
+# Nota: DocumentoCreate não é necessário aqui porque o endpoint usa Form() +
+# UploadFile diretamente (multipart/form-data).  O schema de validação ocorre
+# no próprio roteador via parâmetros Form e FastAPI.
+
+# ── Auth ─────────────────────────────────────────────────────────────────────
 
 class LoginSchema(BaseModel):
-    email:str
-    senha:str
+    email: str
+    senha: str
 
-    class config:
+    class Config:
         from_attributes = True
+
 
 class ForgotPasswordRequest(BaseModel):
     email: EmailStr
 
-    class config:
+    class Config:
         from_attributes = True
+
 
 class ResetPasswordRequest(BaseModel):
     token: str
     new_password: str
 
-    class config:
+    class Config:
         from_attributes = True
 
-class MessageResponse(BaseModel):
-    message: str
 
-    class config:
+# ── Motoristas ────────────────────────────────────────────────────────────────
+
+class MotoristaSchema(BaseModel):
+    nome_usuario: str
+    cnh: str
+
+    class Config:
+        from_attributes = True
+
+
+class MotoristaResponse(BaseModel):
+    id: int
+    usuario_id: int
+    cnh: str
+
+    class Config:
         from_attributes = True

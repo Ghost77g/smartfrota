@@ -5,10 +5,11 @@ from dotenv import load_dotenv
 import os
 
 load_dotenv()
-
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-# ✅ Para PostgreSQL, sem connect_args
+if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
 engine = create_engine(DATABASE_URL)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

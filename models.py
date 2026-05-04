@@ -1,9 +1,8 @@
-from sqlalchemy import ForeignKey, create_engine, Column, String, Integer, Float, Boolean, Date, Enum, UUID
+from sqlalchemy import ForeignKey, create_engine, Column, String, Integer, Float, Boolean, Date, Enum
 from sqlalchemy.orm import declarative_base
 from sqlalchemy_utils.types import ChoiceType
 from sqlalchemy import ForeignKey, create_engine, Column, String, Integer, Float, Boolean, DateTime
 from sqlalchemy.orm import declarative_base
-from sqlalchemy_utils.types import ChoiceType
 from database import Base
 import enum
 import uuid
@@ -15,7 +14,7 @@ db = create_engine("postgresql://postgres:gm080507@localhost:5432/smartfrota.db"
 Base = declarative_base()
 
 class Usuario(Base):
-    __tablename__ = "usuarios"  # padronizado minúsculo
+    __tablename__ = "usuarios"
 
     id = Column(Integer, primary_key=True, autoincrement=True) 
     nome = Column(String, nullable=False)
@@ -26,7 +25,7 @@ class Usuario(Base):
     ativo = Column(Boolean, default=True)
     admin = Column(Boolean, default=False)
 
-    def __init__(self, nome, senha, email, telefone, função , ativo=True, admin=False):
+    def __init__(self, nome, senha, email, telefone, função, ativo=True, admin=False):
         self.nome = nome
         self.senha = senha
         self.email = email
@@ -53,7 +52,7 @@ class Veiculo(Base):
     placa = Column(String, nullable=False)
     preco = Column(Float, nullable=True)
     motorista_id = Column(Integer, ForeignKey("usuarios.id", ondelete="CASCADE"))
-    status = Column(Enum(StatusVeiculo, name="status_veiculo_enum"),default=StatusVeiculo.PRONTO,nullable=False)
+    status = Column(Enum(StatusVeiculo, name="status_veiculo_enum"), default=StatusVeiculo.PRONTO, nullable=False)
 
     def __init__(self, modelo, marca, placa, preco=0, status=StatusVeiculo.PRONTO):
         self.modelo = modelo
@@ -65,11 +64,11 @@ class Veiculo(Base):
 class manutenção(Base):
     __tablename__ = "manutenções"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)  # corrigido
+    id = Column(Integer, primary_key=True, autoincrement=True)
     valor = Column(Float)
     tipo = Column(String, nullable=False)
     oficina_responsavel = Column(String, nullable=False)
-    veiculo_id = Column(Integer, ForeignKey("veiculos.id"))  # corrigido
+    veiculo_id = Column(Integer, ForeignKey("veiculos.id"))
 
     def __init__(self, valor, tipo, oficina_responsavel):
         self.valor = valor
@@ -79,31 +78,51 @@ class manutenção(Base):
 class documento(Base):
     __tablename__ = "Documentos"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)  # corrigido
-    tipo = Column(String, nullable=False)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    # ── Novos campos adicionados ──────────────────────────────────────────────
+    nome = Column(String(255), nullable=False)          # nome/título do documento
+    arquivo_nome = Column(String(255), nullable=True)   # nome UUID do arquivo no disco
+    # ─────────────────────────────────────────────────────────────────────────
+    tipo = Column(String(100), nullable=False)
     data_emissao = Column(Date, nullable=False)
     data_vencimento = Column(Date, nullable=False)
-    veiculo_id = Column(Integer, ForeignKey("veiculos.id"))  # corrigido
+    veiculo_id = Column(Integer, ForeignKey("veiculos.id"))
 
-    def __init__(self, tipo, data_emissao, data_vencimento):
+    def __init__(self, nome, tipo, data_emissao, data_vencimento, arquivo_nome=None, veiculo_id=None):
+        self.nome = nome
         self.tipo = tipo
         self.data_emissao = data_emissao
         self.data_vencimento = data_vencimento
+        self.arquivo_nome = arquivo_nome
+        self.veiculo_id = veiculo_id
 
 class motorista_veiculo(Base):
     __tablename__ = "Motorista-veiculo"
 
     id = Column(Integer, primary_key=True, autoincrement=True) 
     veiculo_id = Column(Integer, ForeignKey("veiculos.id")) 
-    motorista_id = Column(Integer, ForeignKey("usuarios.id", ondelete="CASCADE"))  # corrigido
+    motorista_id = Column(Integer, ForeignKey("usuarios.id", ondelete="CASCADE"))
     data_inicio = Column(Date)
     data_fim = Column(Date)
 
     def __init__(self, veiculo_id, motorist_id, data_inicio, data_fim):
         self.veiculo_id = veiculo_id
-        self. motorist_id = motorist_id
+        self.motorist_id = motorist_id
         self.data_inicio = data_inicio
         self.data_fim = data_fim
+
+class Motorista(Base):
+    __tablename__ = "motoristas"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    usuario_id = Column(Integer, ForeignKey("usuarios.id", ondelete="CASCADE"), unique=True, nullable=False)
+    cnh = Column(String(11), unique=True, nullable=False)
+    criado_em = Column(DateTime, default=datetime.utcnow)
+
+    def __init__(self, usuario_id, cnh):
+        self.usuario_id = usuario_id
+        self.cnh = cnh
+
 
 class PasswordResetToken(Base):    
     __tablename__ = "password_reset_tokens"
